@@ -1,0 +1,114 @@
+dijkstra_speed::Solver1 (before todo/done optimization):
+time cargo run --release <samples/500x500_144
+144
+real    2m34.830s
+user    2m34.716s
+sys     0m0.016s
+Memory: 4.3MB
+Mem RSS: 6MB
+
+dijkstra_speed::Solver1 (after todo/done optimization):
+time cargo run --release <samples/500x500_144
+144
+real    0m39.024s
+user    0m39.008s
+sys     0m0.008s
+Memory: 7MB
+Mem RSS: 7.9MB
+
+time cargo run --release  <samples/1000x1010_283
+283
+real    13m54.165s
+user    13m54.024s
+sys     0m0.028s
+Memory: 27.3MB
+Mem RSS: 29MB
+
+dijkstra_speed::Solver1 (after world/purgatory/heaven optimization):
+time cargo run --release <samples/500x500_144
+144
+real    0m0.452s
+user    0m0.444s
+sys     0m0.008s
+Memory: ?MB
+
+time cargo run --release  <samples/1000x1010_283
+283
+real    0m2.998s
+user    0m2.980s
+sys     0m0.016s
+Memory: 20MB
+
+time cargo run --release  <samples/2000x2020_534
+534
+real    0m22.710s
+user    0m22.672s
+sys     0m0.032s
+Memory: 80MB
+
+dijkstra_speed::Solver1 (after 3 x with_capacity() "optimization"):
+time cargo run --release  <samples/2000x2020_534
+534
+real    5m38.815s
+user    5m38.720s
+sys     0m0.056s
+Memory: 92MB
+
+dijkstra_speed::Solver1 (after 1 x with_capacity() and prev as tuple):
+time cargo run --release <samples/500x500_144
+144
+real    0m0.426s
+user    0m0.416s
+sys     0m0.008s
+Memory: ?MB
+
+time cargo run --release  <samples/1000x1010_283
+283
+real    0m2.794s
+user    0m2.780s
+sys     0m0.012s
+Memory: 17MB
+
+time cargo run --release  <samples/2000x2020_534
+534
+real    0m22.906s
+user    0m22.872s
+sys     0m0.028s
+Memory: 50MB
+
+dijkstra_mem::Solver1 (solve()):
+time cargo run --release <samples/500x500_144
+144
+real    0m0.449s
+user    0m0.428s
+sys     0m0.000s
+Memory: ?MB
+
+time cargo run --release  <samples/1000x1010_283
+283
+real    0m3.215s
+user    0m3.196s
+sys     0m0.016s
+Memory: 19MB
+
+time cargo run --release  <samples/2000x2020_534
+534
+real    0m25.716s
+user    0m25.660s
+sys     0m0.052s
+Memory: 75MB
+
+dijkstra_mem::Solver1 (solve_and_drop()):
+time cargo run --release  <samples/1000x1010_283
+283
+real    0m2.888s
+user    0m2.864s
+sys     0m0.020s
+Memory: 19MB
+
+time cargo run --release  <samples/2000x2020_534
+534
+real    0m24.011s
+user    0m23.936s
+sys     0m0.072s
+Memory: 75MB
