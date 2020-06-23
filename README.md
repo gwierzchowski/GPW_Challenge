@@ -1,71 +1,80 @@
 GPW Challenge
 ==============
 
-To jest implementacja rozwiazania problemu w ramach rekrutacji na stonowisko programisty w Giełdzie Paperów Wartościowych (czerwiec 2020).
+This is the implementation of the problem solution in the recruitment for the position of Rust programmer (June 2020).
+Exercise is closed, I do not predict any further development.
 
-Opis zadania
+The problem
 --------------
-Cyfrowy labirynt o szerokości X i długości Y składa się z zer i jedynek, gdzie zero jest ścianą
-a jedynka drogą. Napisz aplikację w języku Rust, która znajdzie drogę do wyjścia z labiryntu o
-najmniejszej liczbie zakrętów.
+The digital maze with width X and length Y consists of zeros and ones, where zero is a wall
+and one a way. Write an application in Rust that will find a way out of the maze with the fewest number of turns.
+Starting point is a leftmost point in second row, and end point is rightmost point in second last row (at the bottom).
 
-Rozwiązanie
+As the additional mode lines of input file should be converted from binary to decimal notation.
+
+The solution
 -------------
-Problem starałem się zamodelować przy pomocy grafu z wagami przejść (i możliwymi cyklami), tak żeby zastosować jeden ze znanych
-algorytmów szukania optymalnej drogi - np. algorytm Dijkstra'y.
+I tried to model the problem using a graph with weights of transitions (and possible cycles), so as to apply one of the known algorithms for searching the optimal path - e.g. the Dijkstra algorithm.
 
-W przypadku tego specyficznego problemu:
-- węzłami są wszytkie punkty zadeklarowane jako "otwarte", t.j. `1` w pliku wejsciowym
-- waga przejscia między węzłami nie jest stała, ale jest wyliczana dynamicznie na podstawie dotychczasowej drogi (czyli poprzedniego węzła)
-  i wynosi 0 jezeli nie zmieniamy kierunku lub 1 przy zmianie kierunku.
+In this particular case:
 
-Dla ułatwienia dalej będę używał pojęć:
-- "najprostsza droga" dla oznaczenia drogi z najmniejszą liczbą zakrętów (czyli cel zadania).
-- "ranking drogi" - liczba zakrętów
-- 'ranking wązła` - ranking znanej drogi do tego wązła z punktu początkowego
+- the nodes are all points declared as "open", i.e. `1` in input file
+- the weight of transition between nodes is not set up front, but is dynamically calculated based on previous path (the last node)
+  and is equal 0 if we do not change direction or 1 with direction change (the turn).
 
-Na początku procedury program umieszcza wszystkie wezly w kontenerze zwanym `world`. To odpowiada stanowi "nie zmany żadnej drogi do tego punktu".
-Wyjątek stanowi punkt startowy, kóry jest umieszczany w kontenerze `heaven` wraz z rankingiem najprostszej drogi (0 w tym wypadku) orza poprzednim węzłem na tej drodze (samym soba).
-Tworzymy tez pusty kontener `purgatory` (czyściec).
-Zaczynamy od wązła startowego. W każdym kroku jest jeden bierzący wązeł który juz znajduje się w `heaven` i sprawdzamy wszystkie sąsiednie węzły:
-- jeżeli sąsiad jest już w `heaven` to pomijamy
-- jeżeli sąsiad jest w `purgatory`, to wyliczamy jego ranking na postawie drogi przez aktualny węzeł (ranking aktualnego węzła ew. powiekszony o jeden jeżeli jest zakręt)
-  i porównujemy ze znanym rankingiem tego sąsiada (pamietanym w `heaven`) - jezeli jest mniejszy (lepszy) to go zapisujemy oraz zapisujemy bieżący węzel jako poprzedni dla sąsiada.
-- w pozostałym wypadku, wyliczamy ranking sąsiada oraz poprzedni węzeł (tak jak poprzednio) i wpisujemy te informacje do `purgatory`.
+For the ease of explanation I will be using terms:
 
-Nastąpnie spośród wązłów w `purgatory` wybieramy ten z najmniejszym rankingiem, oraz:
-- jeżeli nie ma takiego (`purgatory` jest puste), to wychodzimy
-- jezeli minimalny jest końcowym, to przenosimy go do `heaven` i wychodzimy
-- w pozostałym wypadku przenosimy minimalny węzeł do `heaven` wraz z rankingiem i adresem poprzednego, ustalamy ten wązał jako bierzący i idziemy do począku (sprawdzanie sąsiadów)
+- I will use terms "way" and "path" interchangeably - for the same thing
+- "the simplest way" for the path with least number of turns (i.e. the goal of exercise)
+- "the rank of the way" - number of turns on the way
+- "the rank of the node" - rank of the known way to given node from starting point
 
-Na końcu sprawdzany czy węzeł końcowy znajduje sie w `heaven`, jezeli tak, to pobieramy jego ranking i podajemy jako roazwiązanie.
-Jezeli nie ma go tam, to nie ma rozwiązania - czyli nie ma drogi z począktu do końca.
+At the beginning of the procedure, the program puts all nodes in a container called `world`. This corresponds to the state "we do not know any path to any node".
+Exception is the starting point, which is put into container `heaven` together with rank of simplest way (0 in this case) and the previous node on the path (itself in this case).
+We create also the empty container: `purgatory`.
 
-Wezły przechodzą tylko w jednym kierunku: `world` -> `purgatory` -> `heaven`. Ponadto w każdym kroku usuwamy jeden wązeł z `purgatory`. 
-Oznacza to, że procedura nie zapętli się. Ponadto ustawiany ranking sąsiada jest zawsze >= rankingowy bieżacego, oraz jako bieżacy bierzemy "słabe minimum", 
-to oznacza, że w każdym kojenym kroku do końca procedury nie ustawimy rankingu niższego niż bierzący. Jednocześnie każdy bieżacy węzeł jest w `heaven`, 
-co oznacza że te węzły maja najmniejszy możliwy ranking - w tym ew. wązeł końcowy.
+We begin from starting point. In each step there is one, current node which is already in `heaven` and we check all neighbor nodes:
 
-Szacunkowa złożonośc obliczeniowa wynosi ~ 4*(X*Y)^2
+- if neighbor is in `heaven`, then skip
+- if neighbor is in `purgatory`, then we calculate its rank based on the way via current node (current node's rank maybe increased by one if there is a turn - based on the previous node to current one - which is remembered in `heaven`),
+  and then we compare that with this neighbor known rank (being remembered in `purgatory`) - if it is smaller (i.e. better) we store it and store the current node as the previous one for the neighbor.
+- in the else case (neighbor is in `world`), we calculate neighbor rank and previous node (as in last point) and move the node to `purgatory` with this information.
+
+Therefore from the nodes in `purgatory` we select the one with smallest rank and:
+
+- if there is no such (`purgatory` is empty), then exit
+- if the minimal one is the end-point, then we move it to `heaven` and exit
+- in else case we move minimal node to `heaven` together with its rank and previous node reference, set this node as current and go to loop begin (checking neighbors)
+
+At the end we check if end-node is in `heaven`, if yes then we read its rank and present as solution (full path can be obtained using previous nodes information).
+If end-node is not in `heaven`, then we declare that case have no solution (i.e. path from start to end does not exist).
+
+Nodes move only in one direction: `world` -> `purgatory` -> `heaven`. In addition at each step we remove one node from `purgatory`. 
+This means that procedure will not fall into infinite loop. Also the set neighbor's rank is >= current node rank, and as current we choose "weak minimum", 
+this means that in each step until end, we will not set rank smaller then current one. In the same time every current node is in `heaven`, 
+what means that those nodes have smallest possible rank - among them the end-node.
+
+Estimated complexity ~ 4*(X*Y)^2.
 
 Program
 --------
-Głowny program pobiera dane w zadanym formacie ze standardowego wejścia i drukuje wynik (liczba zakrętów) na standartowe wyjście.
-Program zwraca 0 jeżeli jest wynik, -1 jezeli nie ma rozwiązania, -2 jeżeli dane są nieprawidłowe, zbyt duże, lub nastąpił inny bład.
-Komunikaty o błędach są drukowane na stderr. Wyjście poprzez 'panic' moze nastąpić jedynie w razie jakiegoś niewykrytego błędu logicznego w programie.
-Wstąpna weryfikacja danych powinna wykluczyć błedy typu overflow (jezeli coś mi nie umsknąło).
-Uruchomienie programu z opcją `--dbg` powoduje wydruk na stdout siceżki rozwiązania.
-Uruchomienie programu z inna (dowolną) opcją, zgodnie z zadaniem powoduje potraktowanie linii wejściowych jaki liczb w notacji binarnej i zamiane na dziesiętna.
+The main program takes data in established format from `stdin` and prints result (number of turns) to `stdout`.
+Program returns 0 if there is result, -1 if there is no result, -2 if data are incorrect, too large, or there was other error.
+Error messages are printed to `stderr`. Exit thru 'panic' could only happen in case of some undiscovered logical error in program.
+Initial validation of data should eliminate errors of overflow type (if I did not missed something).
+The program run with option `--dbg` prints to `stdout` also the full solution path (list of nodes).
+The program run with any other option, according to challenge instruction cause converting input lines from binary to decimal notation.
 
-Algorytmy
+Algorithms
 ----------
-Są zakodowane 2 podobne alrytmy zgognie z powższym opisem.
-Różnią się one użyciem tablicy do zapamiętania pozycji i relacji wezłów (`dijkstra_speed`) v.s. hash set (`dijkstra_mem`).
-Zamysłem tego drugiego, bylo przechowywanie tylko istotnych (1-wych) wezłów, co mało korzystnie wpłynąć na zurzycie pamięci.
-W praktyce jednak sie to nie potwierdziło - prawdopodobnie ze wzgledu na i tak duzy stosunek 1 do 0 w "sensownych" danych oraz alokacje w seti'ie pamieci "na zapas".
-Ostatecznie `dijkstra_speed` okazal sie minimalnie najlepszym algorytmem.
-Zmierzony czas na pliku 2000 x 2000, to ok 23s i zurzycie pamieci 50MB.
-Sa 2 interface'y obliczenia rozwiazania:
+There are coded 2 similar algorithms working as described above.
+They differ in using the array to store nodes position and relations (`dijkstra_speed`) v.s. hash set (`dijkstra_mem`).
+The idea behind the second implementation was to store only meaningful / passing (1) nodes, what as I count could reduce RAM memory consumption.
+As it turned out it did not confirmed - I suppose because of relative big 1 to 0 rate in "sensible" data sets, and also because of spare allocation in set.
+At end of day `dijkstra_speed` turned out to be minimally best algorithm.
+The measured time for the data of size 2000 x 2000, is about 23s with memory consumption +- 50MB.
+
+There are 2 API functions to obtain solution:
 ```rust
 fn solve(&self, with_path: bool) -> Option<(DimType, VecDeque<NodeAdr>)>
 ```
@@ -74,21 +83,24 @@ oraz:
 fn solve_and_drop(self, with_path: bool) -> Option<(DimType, VecDeque<NodeAdr>)>
 ```
 
-Pierwsza przydaje sie w sytuacji kiedy chcemy iteracyjnie pracowac na tym samym zbiorze.
-Ta druga daje programiscie wieksze mozliwości recznej optymalizacji pamięciowej.
+The first one allows user to interactively (in the loop) work on the same loaded data set.
+The last one allows for more aggressive memory optimization (e.g. dropping no longer required objects during calculation).
 
-Do zrobienia
+To do
 -------------
-Kilka rzeczy do potencjalnego ulepszenia - oznaczone w kodzie TODO.
-Dokumentacja kodu w formacie rustdoc
-Wiecej unit testow i testow integracyjnych.
-Bardziej formalny dowod poprawnosci.
-Ograniczenie (zastapienie czyms lepszym) dosc duzej liczby rzutowań `as`.
+The time for exercise was limited (few days), so there is still some room for potential improvements in the future.
+Things that came to my mind are:
 
+- Few thinks noted in the code as `TODO`.
+- Code documentation (rustdoc)
+- More unit and integration tests.
+- Benchmark tests (`cargo bench`)
+- More formal correctness proof
+- Potentially refactor to limit `as` castings in many places.
 
 License
 --------
-Public domain.
+MIT-like. Derivative work is possible, but it must reference the source.
 
 Author
 --------
